@@ -10,7 +10,7 @@ import axios from 'axios'
  */
 export function API(slug, payload = {}, headers = {}) {
   const endpoint = getEndpoint(slug, api)
-  let check = true;
+  let check = true
   if (!isValidEndpoint(endpoint)) check = false
 
   if (hasRequiredKeys(endpoint)) if (isValidPayload(payload, endpoint)) check = false
@@ -20,9 +20,9 @@ export function API(slug, payload = {}, headers = {}) {
       url: createEndpointUrl([
         process.env.VUE_APP_BASE_API,
         createEndpointPrefix(slug, api),
-        formatEndpointUrl(endpoint, payload),
+        formatEndpointUrl(endpoint, payload)
       ]),
-      method: endpoint.$method,
+      method: endpoint.$method
     }
 
     params.url = removeTrailingSlash(params.url)
@@ -39,15 +39,14 @@ export function API(slug, payload = {}, headers = {}) {
 
     let ls = new SecureLS({
       encodingType: 'aes'
-    });
+    })
 
     let accessToken = ls.get('token').access_token
 
-    axios.defaults.headers.common['Authorization'] = 'Bearer ' + accessToken;
-
+    axios.defaults.headers.common['Authorization'] = 'Bearer ' + accessToken
     const response = axios({
       ...params,
-      data: { ...payload },
+      data: { ...payload }
     })
 
     return response
@@ -71,7 +70,7 @@ export async function STATE_API({ slug, params, headers }, commit, mutations) {
   await API(slug, params, headers).then(({ data }) => {
     if (data.code >= 200 && data.code <= 299) {
       commit(mutations[1], data)
-    } else if (data.code == 401 && data.title == 'Token is invalid.') {
+    } else if (data.code === 401 && data.title === 'Token is invalid.') {
       commit('AUTH/LOGOUT_SUCCESS')
     } else {
       commit(mutations[2], data)
@@ -100,7 +99,7 @@ export function QS(params) {
  */
 function getEndpoint(slug, api) {
   return slug.split('.').reduce((obj, ind) => {
-    return getChildrenOrMethod(obj, ind);
+    return getChildrenOrMethod(obj, ind)
   }, api) || {}
 }
 
@@ -184,7 +183,7 @@ function isValidEndpoint(endpoint) {
 }
 
 function hasRequiredKeys(endpoint) {
-  return endpoint.hasOwnProperty('$requires');
+  return endpoint.hasOwnProperty('$requires')
 }
 
 function getChildrenOrMethod(obj, childOrMethodName) {
