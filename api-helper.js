@@ -19,6 +19,7 @@ export function API(slug, payload = {}, headers = {}) {
     let params = {
       url: createEndpointUrl([
         process.env.VUE_APP_BASE_API,
+        // "http://localhost:8000",
         createEndpointPrefix(slug, api),
         formatEndpointUrl(endpoint, payload),
       ]),
