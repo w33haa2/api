@@ -18,7 +18,7 @@ export function API(slug, payload = {}, headers = {}) {
   if (check) {
     let params = {
       url: createEndpointUrl([
-        process.env.API_HOST,
+        process.env.VUE_APP_BASE_API,
         createEndpointPrefix(slug, api),
         formatEndpointUrl(endpoint, payload),
       ]),
