@@ -1,4 +1,4 @@
-import { api } from '@/utils/api/api-config'
+import { api } from '@/utils/api-config'
 import SecureLS from 'secure-ls'
 import axios from 'axios'
 
