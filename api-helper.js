@@ -113,7 +113,10 @@ function getEndpoint(slug, api) {
  */
 function formatEndpointUrl(endpoint, payload) {
   if (endpoint.hasOwnProperty('$format')) {
-    return endpoint.$format(payload)
+    let id = {
+      id: payload.id
+    }
+    return endpoint.$format(id)
   }
   return endpoint.$url
 }
