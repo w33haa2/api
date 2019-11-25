@@ -1,6 +1,6 @@
-import { api } from '@/utils/api-config'
-import SecureLS from 'secure-ls'
-import axios from 'axios'
+import { api } from "@/utils/api-config";
+import SecureLS from "secure-ls";
+import axios from "axios";
 
 /**
  * Call endpoints
@@ -9,11 +9,12 @@ import axios from 'axios'
  * @return {object|false} Promise object or false if invalid
  */
 export function API(slug, payload = {}, headers = {}) {
-  const endpoint = getEndpoint(slug, api)
+  const endpoint = getEndpoint(slug, api);
   let check = true;
-  if (!isValidEndpoint(endpoint)) check = false
+  if (!isValidEndpoint(endpoint)) check = false;
 
-  if (hasRequiredKeys(endpoint)) if (isValidPayload(payload, endpoint)) check = false
+  if (hasRequiredKeys(endpoint))
+    if (isValidPayload(payload, endpoint)) check = false;
 
   if (check) {
     let params = {
@@ -21,40 +22,40 @@ export function API(slug, payload = {}, headers = {}) {
         process.env.VUE_APP_BASE_API,
         // "http://localhost:8000",
         createEndpointPrefix(slug, api),
-        formatEndpointUrl(endpoint, payload),
+        formatEndpointUrl(endpoint, payload)
       ]),
-      method: endpoint.$method,
-    }
+      method: endpoint.$method
+    };
 
-    params.url = removeTrailingSlash(params.url)
+    params.url = removeTrailingSlash(params.url);
 
     // if headers is not empty
     if (!Object.is(headers, {})) {
-      params = { ...params, headers: headers }
+      params = { ...params, headers: headers };
     }
 
-    if (endpoint.$method === 'GET') {
-      params.url += addQueryString(endpoint, payload)
-      payload = {}
+    if (endpoint.$method === "GET") {
+      params.url += addQueryString(endpoint, payload);
+      payload = {};
     }
 
     let ls = new SecureLS({
-      encodingType: 'aes'
+      encodingType: "aes"
     });
 
-    let accessToken = ls.get('token').access_token
+    let accessToken = ls.get("token").access_token;
 
-    axios.defaults.headers.common['Authorization'] = 'Bearer ' + accessToken;
+    axios.defaults.headers.common["Authorization"] = "Bearer " + accessToken;
 
     const response = axios({
       ...params,
-      data: { ...payload },
-    })
+      data: { ...payload }
+    });
 
-    return response
+    return response;
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -68,21 +69,23 @@ export function API(slug, payload = {}, headers = {}) {
  * @constructor
  */
 export async function STATE_API({ slug, params, headers }, commit, mutations) {
-  commit(mutations[0])
-  await API(slug, params, headers).then(({ data }) => {
-    if (data.code >= 200 && data.code <= 299) {
-      commit(mutations[1], data)
-    } else if (data.code == 401 && data.title == 'Token is invalid.') {
-      commit('AUTH/LOGOUT_SUCCESS')
-    } else {
-      commit(mutations[2], data)
-    }
-  }).catch(error => {
-    commit(mutations[2], error)
-  })
+  commit(mutations[0]);
+  await API(slug, params, headers)
+    .then(({ data }) => {
+      if (data.code >= 200 && data.code <= 299) {
+        commit(mutations[1], data);
+      } else if (data.code == 401 && data.title == "Token is invalid.") {
+        commit("AUTH/LOGOUT_SUCCESS");
+      } else {
+        commit(mutations[2], data);
+      }
+    })
+    .catch(error => {
+      commit(mutations[2], error);
+    });
 }
 
-export const esc = encodeURIComponent
+export const esc = encodeURIComponent;
 
 /**
  * Convert an object of query to string
@@ -90,7 +93,32 @@ export const esc = encodeURIComponent
  * @return {string}
  */
 export function QS(params) {
-  return (Object.keys(params).map(k => esc(k) + '=' + esc(params[k])).join('&'))
+  // return (Object.keys(params).map(k => esc(k) + '=' + esc(params[k])).join('&'))
+  let result = "",
+    tmp = Object.keys(unsetNull(params));
+  tmp.forEach((v, i) => {
+    if (params[v]) {
+      if (Array.isArray(params[v])) {
+        params[v].forEach((v1, i1) => {
+          result += "&" + v + "[]=" + params[v][i1];
+        });
+      } else {
+        result += "&" + v + "=" + params[v];
+      }
+    }
+  });
+  return result.slice(1);
+}
+
+function unsetNull(obj) {
+  let result = {},
+    tmp = Object.keys(obj);
+  tmp.forEach((v, i) => {
+    if (obj[v]) {
+      result[v] = obj[v];
+    }
+  });
+  return result;
 }
 
 /**
@@ -100,9 +128,11 @@ export function QS(params) {
  * @returns {object} Endpoint object {$url, $method, $requires?, $format?}
  */
 function getEndpoint(slug, api) {
-  return slug.split('.').reduce((obj, ind) => {
-    return getChildrenOrMethod(obj, ind);
-  }, api) || {}
+  return (
+    slug.split(".").reduce((obj, ind) => {
+      return getChildrenOrMethod(obj, ind);
+    }, api) || {}
+  );
 }
 
 /**
@@ -112,13 +142,13 @@ function getEndpoint(slug, api) {
  * @return {string}
  */
 function formatEndpointUrl(endpoint, payload) {
-  if (endpoint.hasOwnProperty('$format')) {
+  if (endpoint.hasOwnProperty("$format")) {
     let id = {
       id: payload.id
-    }
-    return endpoint.$format(id)
+    };
+    return endpoint.$format(id);
   }
-  return endpoint.$url
+  return endpoint.$url;
 }
 
 /**
@@ -127,7 +157,7 @@ function formatEndpointUrl(endpoint, payload) {
  * @returns {*}
  */
 function createEndpointUrl(parts) {
-  return parts.join('/')
+  return parts.join("/");
 }
 
 /**
@@ -136,8 +166,8 @@ function createEndpointUrl(parts) {
  * @returns {*}
  */
 function removeTrailingSlash(url) {
-  if (_.endsWith(url, '/')) url = url.slice(0, -1)
-  return url
+  if (_.endsWith(url, "/")) url = url.slice(0, -1);
+  return url;
 }
 
 /**
@@ -148,11 +178,11 @@ function removeTrailingSlash(url) {
  */
 function addQueryString(endpoint, payload) {
   if (hasRequiredKeys(endpoint)) {
-    let omitKeys = endpoint.$requires
-    let query = _.omit(payload, omitKeys)
-    return _.isEmpty(query) ? '' : '?' + QS(query)
+    let omitKeys = endpoint.$requires;
+    let query = _.omit(payload, omitKeys);
+    return _.isEmpty(query) ? "" : "?" + QS(query);
   }
-  return '?' + QS(payload)
+  return "?" + QS(payload);
 }
 
 /**
@@ -162,15 +192,21 @@ function addQueryString(endpoint, payload) {
  */
 function createEndpointPrefix(slug, api) {
   // the accumulator `acc = {object, prefix}` will contain the current object in the iterator and the prefix
-  return slug.split('.').reduce((acc, ind) => {
-    // lets get the child object or the child object's method
-    let obj = getChildrenOrMethod(acc.object, ind)
+  return slug
+    .split(".")
+    .reduce(
+      (acc, ind) => {
+        // lets get the child object or the child object's method
+        let obj = getChildrenOrMethod(acc.object, ind);
 
-    // if this is a child object, it will have a $prefix, pass it to the accumulator
-    if (obj.$prefix) acc.prefix.push(obj.$prefix)
+        // if this is a child object, it will have a $prefix, pass it to the accumulator
+        if (obj.$prefix) acc.prefix.push(obj.$prefix);
 
-    return { object: obj, prefix: acc.prefix }
-  }, { object: api, prefix: [] }).prefix.join('/')
+        return { object: obj, prefix: acc.prefix };
+      },
+      { object: api, prefix: [] }
+    )
+    .prefix.join("/");
 }
 
 /**
@@ -180,17 +216,19 @@ function createEndpointPrefix(slug, api) {
  * @returns {boolean} true on success, false otherwise
  */
 function isValidPayload(payload, endpoint) {
-  return endpoint.$requires.filter((key) => payload.hasOwnProperty(key)).length === 0
+  return (
+    endpoint.$requires.filter(key => payload.hasOwnProperty(key)).length === 0
+  );
 }
 
 function isValidEndpoint(endpoint) {
-  return endpoint.hasOwnProperty('$url')
+  return endpoint.hasOwnProperty("$url");
 }
 
 function hasRequiredKeys(endpoint) {
-  return endpoint.hasOwnProperty('$requires');
+  return endpoint.hasOwnProperty("$requires");
 }
 
 function getChildrenOrMethod(obj, childOrMethodName) {
-  return (obj[childOrMethodName] || obj.$children[childOrMethodName]) || {}
+  return obj[childOrMethodName] || obj.$children[childOrMethodName] || {};
 }
